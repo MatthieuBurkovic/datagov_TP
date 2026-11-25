@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+shopfast-kit/
+.env
+openrefine-3.10.0/
