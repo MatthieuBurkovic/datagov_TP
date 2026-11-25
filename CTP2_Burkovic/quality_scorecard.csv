@@ -1,0 +1,13 @@
+dimension,rule_in_plain_words,column,how_you_measured_it,failing_rows,total_rows,score_pct,severity_high_medium_low,who_should_fix_owner_steward_custodian,why
+Completeness,Every customer has an email,email,count of empty email,48,1241,96.1,high,Owner,Cannot contact the customer or detect duplicates; the Owner decides the threshold and fixes the sign-up form
+Completeness,Every customer has a country,country,count of empty country,37,1241,97.0,medium,Steward,Breaks VAT and delivery statistics; Steward can often infer it from the address or postcode
+Uniqueness,customer_id is unique,customer_id,duplicated customer_id minus first occurrence,8,1241,99.4,high,Custodian,"Exact copies of rows: a loading problem, so the Custodian fixes the pipeline"
+Uniqueness,One account per person,email,"duplicates of lower-cased trimmed email, after removing exact copies",52,1233,95.8,high,Steward,"Same person registered twice splits orders and loyalty; Steward merges, Owner defines the merge rule"
+Validity,Email looks like an email,email,"regex ^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$ on non-empty emails",28,1241,97.7,high,Steward,"Bounced marketing emails and failed invoices (double @, missing domain, leading space)"
+Validity,"loyalty_tier is bronze, silver, gold or platinum",loyalty_tier,value not in the allowed set (case and spaces matter),13,1241,99.0,low,Steward,Only distorts a chart; fix with a lower-case and trim transform
+Validity,French postal code has 5 digits,postal_code,FR rows whose postal_code is not 5 digits (lost leading zero),48,723,93.4,medium,Custodian,"Wrong delivery address; caused by reading the column as a number, so the Custodian fixes the import"
+Consistency,"Country is an ISO-2 code (FR, DE, ES, BE)",country,"non-empty value not in {FR, DE, ES, BE}",299,1241,75.9,medium,Steward,18 spellings for 4 countries break every group-by country
+Consistency,signup_date is written YYYY-MM-DD,signup_date,value not matching ^\d{4}-\d{2}-\d{2}$,303,1241,75.6,medium,Custodian,"Mixed formats (dd/mm/yyyy, mm-dd-yyyy) make date maths wrong; standardise at load time"
+Consistency,birth_date is written YYYY-MM-DD,birth_date,value not matching ^\d{4}-\d{2}-\d{2}$,174,1241,86.0,medium,Custodian,Same problem as signup_date; also blocks the accuracy check on these rows
+Accuracy,Birth date is plausible (1906 to today - 18 years),birth_date,"ISO dates in the future, under 18 or before 1906",8,1241,99.4,high,Owner,Age-restricted offers and the law (minors): the Owner decides what to do with impossible dates
+Timeliness,Orders loaded within 24 h,orders.order_date,now - max(order_date) < 1 day (1 = check failed),1,1,0.0,high,Custodian,Newest valid order is 13 days old; the nightly load is late or stopped
